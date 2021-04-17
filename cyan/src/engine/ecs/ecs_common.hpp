@@ -11,6 +11,11 @@
 #include <cstdint>
 #include <limits>
 
+// Required to ensure some VC++ legacy macros don't make issues with numeric_limits::max()
+#ifdef max
+#undef max
+#endif
+
 namespace cyan {
     // Type aliases and utiltity values for # of bits and masks for use by the ECS generation/index split scheme.
     using EcsIdT = std::uint64_t;
