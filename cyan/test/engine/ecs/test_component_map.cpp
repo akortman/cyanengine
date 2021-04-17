@@ -1,5 +1,3 @@
-/// TODO
-
 #include <catch2/catch.hpp>
 #include <string>
 
