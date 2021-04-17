@@ -1,0 +1,35 @@
+/**
+ * Contains implementations of functions for use of cyanengine via chaiscript.
+ */
+
+/**
+ * Log a string.
+ */
+def log(str) {
+    cyan_log_string_impl(str);
+}
+
+/**
+ * Log a string with arguments. Arguments are placed in the array `args`.
+ */
+def log(fmtstr, args) {
+    var arg_positions = [];
+    for (var i = 0; i < fmtstr.size(); i += 1) {
+        if (fmtstr[i] == '%' && (i == 0 || fmtstr[i - 1] != '\\')) {
+            arg_positions.push_back(i);
+        }
+    }
+
+    var position = 0;
+    var result = string();
+    for (var i = 0; i < arg_positions.size() && i < args.size(); i += 1) {
+        var chunk = substring(fmtstr, position, arg_positions[i]);
+        result = result + chunk + args[i];
+        position = position + chunk.size() + 1;
+    }
+    result = result + substring(fmtstr, position, fmtstr.size());
+
+    cyan_log_string_impl(result);
+}
+
+log("Initialized cyan scripting standard library");

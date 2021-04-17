@@ -9,7 +9,7 @@
 namespace cyan::ecs {
     // TODO: If we have issues with this, it may be best to use a pointer that is initialized by the engine setup.
     //       for now, it has a default constructor, so we should be fine.
-    ECS global_ecs;
+    static ECS global_ecs;
 
     /**
      * Create a new entity with no associated components.

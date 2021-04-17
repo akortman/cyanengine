@@ -1,5 +1,8 @@
 #include "engine.hpp"
 
+#include "script/core_stdlib.hpp"
+#include "script/ecs_script.hpp"
+
 using namespace cyan;
 
 Engine EngineBuilder::create()
@@ -31,6 +34,10 @@ Engine::~Engine()
 
 Engine::Engine()
 {
+    // Initialize the chai/cyan standard library contents.
+    chai_add_cyan_stdlib(chai_engine);
+    chai_add_ecs_library(chai_engine);
+
     LOG(INFO, "cyanengine initialized.");
 }
 

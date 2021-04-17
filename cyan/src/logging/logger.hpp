@@ -68,6 +68,12 @@ namespace cyan {
             }
         }
 
+        /// Log a single string.
+        /// This exists to faciliate log calls from scripts, which do not support variadic arguments.
+        void log_script(const std::string& s) const {
+            log(LogVerbosity::INFO, "(Script) {}", s);
+        }
+
     private:
         LogVerbosity verbosity_threshold;
         static const std::uint8_t max_outputs = 4;

@@ -69,6 +69,6 @@ namespace cyan {
 
         friend EngineBuilder;
 
-        ChaiEngine script_engine;
+        ChaiEngine chai_engine;
     };
 }
