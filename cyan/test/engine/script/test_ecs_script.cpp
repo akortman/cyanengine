@@ -2,6 +2,7 @@
 
 #include "cyan/src/engine/script/chai_engine.hpp"
 #include "cyan/src/engine/script/ecs_script.hpp"
+#include "cyan/generated/components/components.hpp"
 
 using namespace cyan;
 
@@ -31,7 +32,19 @@ TEST_CASE("chai ecs: entity creation and deletion via script", "[engine][script]
     CHECK_FALSE(chai.eval<bool>("entity_exists(e1)"));
 }
 
+
 TEST_CASE("chai ecs: component usage", "[engine][script]")
 {
-    // TODO
+    ChaiEngine chai_engine;
+    ECS ecs;
+    chai_add_ecs_library(chai_engine, ecs);
+
+    auto& chai = chai_engine.get_chai_object();
+
+    auto e = chai.eval<Entity>("var e = new_entity();");
+    auto chai_report = chai_engine.run("var c = add_debug_name_component(e, DebugNameComponent())");
+    CHECK(chai_report.ok);
+    CHECK(ecs.has_component<component::DebugName>(e));
+    CHECK(bool(chai.eval<ComponentEntry<component::DebugName>>("get_debug_name_component(e)")));
+    CHECK(chai.eval<bool>("get_debug_name_component(e).is_valid()"));
 }

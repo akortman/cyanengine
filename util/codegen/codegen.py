@@ -21,7 +21,8 @@ prelude = """{}
 
 struct_template = """
 struct {struct_name} {{
-{members}
+{constructors}
+{data_members}
 }};
 """
 
@@ -42,6 +43,53 @@ def make_member(member):
     return "{} {};".format(member["type"], member["name"])
 
 
+def make_default_constructor(codegen_template):
+    """
+    Generate a default constructor from members.
+    """
+    ctor_template = "{struct_name}() : {initializers} {{}}"
+    initializers = []
+    for member in codegen_template["data"]:
+        default_value = "" if "default" not in member else member["default"]
+        initializers.append("{}({})".format(member["name"], default_value))
+    initializers = ", ".join(initializers)
+
+    return ctor_template.format(struct_name=codegen_template["name"], initializers=initializers)
+
+
+def make_member_constructor(codegen_template):
+    """
+    Generate a member-list constructor from members. e.g. if we have DebugName struct with member 'std::string name',
+    this will generate a constructor `DebugName::DebugName(const std::string& name)`
+    """
+    # Add types to this list to cause them to be generate argument types for copying, rather than as a const reference.
+    copyable_types = {
+        "int", "bool" # TODO: this can be expanded
+    }
+
+    ctor_template = "{struct_name}({args}) : {initializers} {{}}"
+    initializers = []
+    args = []
+    for member in codegen_template["data"]:
+        argname = member["name"] + "_"
+        if member["type"] in copyable_types:
+            args.append("{} {}".format(member["type"], argname))
+        else:
+            args.append("const {}& {}".format(member["type"], argname))
+        initializers.append("{}({})".format(member["name"], argname))
+    initializers = ", ".join(initializers)
+    nargs = len(args)
+    args = ", ".join(args)
+
+    ctor_code = ctor_template.format(struct_name=codegen_template["name"], args=args, initializers=initializers)
+
+    # Constructors with one argument should be marked explicit to prevent unintentional conversions.
+    if nargs == 1:
+        ctor_code = "explicit " + ctor_code
+
+    return ctor_code
+
+
 def generate_code(codegen_file):
     """
     Given a single codegen file template, generate and return the corresponding C++ code.
@@ -52,15 +100,23 @@ def generate_code(codegen_file):
     struct_name = codegen_template["name"]
     namespace = "" if "namespace" not in codegen_template else codegen_template["namespace"]
     if "data" in codegen_template:
-        members = [make_member(m) for m in codegen_template["data"]]
-        members = ["    {}".format(m) for m in members]
-        members = "\n".join(members)
+        data_members = [make_member(m) for m in codegen_template["data"]]
+        data_members = ["    {}".format(m) for m in data_members]
+        data_members = "\n".join(data_members)
+
+        constructors = [
+            make_default_constructor(codegen_template),
+            make_member_constructor(codegen_template)
+        ]
+        constructors = "".join("    {}\n".format(c) for c in constructors)
     else:
-        members = ""
+        data_members = ""
+        constructors = ""
 
     struct_body = struct_template.format(
         struct_name=struct_name,
-        members=members
+        constructors=constructors,
+        data_members=data_members
     )
 
     if "include" in codegen_template:
@@ -118,7 +174,7 @@ def main():
                 xlist_key = "{}:{}".format(xlist_file_path, xlist_name)
                 if xlist_key not in xlisted:
                     xlisted[xlist_key] = {"entries": [], "listname": xlist_name, "fname": xlist_file_path}
-                xlisted[xlist_key]["entries"].append(generated_file["namespaced_struct_name"])
+                xlisted[xlist_key]["entries"].append(generated_file["struct_name"])
 
             # save file information to an include list.
             for inc in generated_file["include_in"]:

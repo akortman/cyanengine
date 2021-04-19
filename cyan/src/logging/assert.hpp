@@ -2,20 +2,18 @@
 
 #include <cstdlib>
 
-namespace cyan {
-    /**
-     * Debug builds only: if a statement is false, log an error and exit.
-     * Only to be used in critical failures in logic - consider throwing an internal error in other cases (this is
-     * designed to be compiled out in non-debug builds).
-     * @param x The statement to be evaulated.
-     */
-    inline void _assert(bool x) {
-        // TODO: seperate into CPP
-        if (!x) {
-            // TODO: LOGGING
-            std::exit(-1);
-        }
-    };
-}
+#include "cyan/src/logging/logger.hpp"
+#include "cyan/src/logging/error.hpp"
 
-#define CYAN_ASSERT(x) cyan::_assert(x)
+/**
+ * Debug builds only: if a statement is false, log an error and exit.
+ * To be used to check invariant conditions in algorithms liberally.
+ * Consider throwing a cyan::Error for other situations, because CYAN_ASSERT won't be present in release builds.
+ * TODO: this is should be compiled out in non-debug builds
+ */
+#ifndef CYAN_ASSERT
+    #define CYAN_ASSERT(x) do { if (!x) { \
+            LOGL(CRITICAL, "Assert failure: {}", ##x); \
+            throw cyan::Error("Assert failure: {}", ##x); \
+        }} while (0)
+#endif
