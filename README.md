@@ -23,7 +23,8 @@ working on alone, (2) require a lot of care and thought put into the architectur
 the hope of being easily usable by others, but I have no expectations of it being used in such a way.
 
 # installation
-Right now the engine is solely an ECS system and some failing tests, but if you'd like to build and run cyanengine:
+Right now the engine is only an ECS system, scripting integration, and related tests, but if you'd like to build and
+run cyanengine:
     
 1. Check out this repo.
 2. Check out the following dependency repos:
@@ -31,7 +32,9 @@ Right now the engine is solely an ECS system and some failing tests, but if you'
     - catch2: https://github.com/catchorg/Catch2
     - {fmt}: https://github.com/fmtlib/fmt
 3. Build those projects using CMake into the ./library directory within cyanengine.
-4. Build cyanengine with CMake.
+4. Run cyanengine's code generation with `./generate_code.cmd`, or if you're not on Windows, run the python script:
+    - `python util/codegen/codegen.py -i cyan/codegen -o cyan/generated` (run in project root)
+5. Build cyanengine with CMake.
     - As this project is (as of right now) solely worked on by myself on my (Windows 10) system, if the project isn't
       building after following steps, please let me know (april.kortman@gmail.com). When the project is more complete
       I'll be testing it on several different systems, as well as writing a script to automate the dependency
