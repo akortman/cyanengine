@@ -29,8 +29,9 @@ Right now the engine is solely an ECS system and some failing tests, but if you'
 2. Check out the following dependency repos:
     - chaiscript: https://github.com/ChaiScript/ChaiScript
     - catch2: https://github.com/catchorg/Catch2
+    - {fmt}: https://github.com/fmtlib/fmt
 3. Build those projects using CMake into the ./library directory within cyanengine.
-4. Build cyanengine.
+4. Build cyanengine with CMake.
     - As this project is (as of right now) solely worked on by myself on my (Windows 10) system, if the project isn't
       building after following steps, please let me know (april.kortman@gmail.com). When the project is more complete
       I'll be testing it on several different systems, as well as writing a script to automate the dependency
