@@ -6,5 +6,6 @@
     { "name": "name", "type": "std::string" }
   ],
   "xlisted": [ ["X_COMPONENTS", "./components_x_list.hpp"] ],
-  "include_in": ["./components.hpp"]
+  "include_in": ["./components.hpp"],
+  "generate": [ "chai_bindings" ]
 }

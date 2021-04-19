@@ -11,8 +11,9 @@ cmake-build-release
 # CLion files
 .idea/
 
-# Python venv
+# Python
 util/python-venv
+__pycache__
 
 ## Default GitHub gitignore for C++ projects.
 # Prerequisites

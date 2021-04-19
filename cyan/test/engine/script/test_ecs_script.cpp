@@ -41,10 +41,47 @@ TEST_CASE("chai ecs: component usage", "[engine][script]")
 
     auto& chai = chai_engine.get_chai_object();
 
-    auto e = chai.eval<Entity>("var e = new_entity();");
-    auto chai_report = chai_engine.run("var c = add_debug_name_component(e, DebugNameComponent())");
-    CHECK(chai_report.ok);
-    CHECK(ecs.has_component<component::DebugName>(e));
-    CHECK(bool(chai.eval<ComponentEntry<component::DebugName>>("get_debug_name_component(e)")));
-    CHECK(chai.eval<bool>("get_debug_name_component(e).is_valid()"));
+    SECTION("Default construction and deletion") {
+        auto e = chai.eval<Entity>("var e = new_entity();");
+        auto chai_report = chai_engine.run("var c = add_debug_name_component(e, DebugNameComponent())");
+        CHECK(chai_report.ok);
+        CHECK(ecs.has_component<component::DebugName>(e));
+        CHECK(bool(chai.eval<ComponentEntry<component::DebugName>>("get_debug_name_component(e)")));
+        CHECK(chai.eval<bool>("get_debug_name_component(e).is_valid()"));
+
+        chai_report = chai_engine.run("remove_debug_name_component(e);");
+        CHECK(chai_report.ok);
+        CHECK_FALSE(ecs.has_component<component::DebugName>(e));
+        CHECK_FALSE(chai.eval<bool>("get_debug_name_component(e).is_valid()"));
+    }
+
+    SECTION("Constructor construction and deletion") {
+        auto e1 = chai.eval<Entity>("var e1 = new_entity();");
+        auto chai_report = chai_engine.run("var c1 = add_debug_name_component(e1, DebugNameComponent(\"Fred\"))");
+        CHECK(chai_report.ok);
+        CHECK(ecs.has_component<component::DebugName>(e1));
+        CHECK(ecs.get_component<component::DebugName>(e1).value->name == "Fred");
+        CHECK(chai.eval<bool>("c1.get().name == \"Fred\""));
+
+        chai_report = chai_engine.run("remove_debug_name_component(e1);");
+        CHECK(chai_report.ok);
+        CHECK_FALSE(ecs.has_component<component::DebugName>(e1));
+        CHECK_FALSE(chai.eval<bool>("get_debug_name_component(e1).is_valid()"));
+    }
+
+    SECTION("Component creation & subsequent entity deletion") {
+        auto e2 = chai.eval<Entity>("var e2 = new_entity();");
+        auto chai_report = chai_engine.run("var c2 = add_debug_name_component(e2, DebugNameComponent(\"Bob\"))");
+        CHECK(chai_report.ok);
+        CHECK(ecs.has_component<component::DebugName>(e2));
+        CHECK(ecs.get_component<component::DebugName>(e2).value->name == "Bob");
+        CHECK(chai.eval<bool>("c2.get().name == \"Bob\""));
+
+        chai_report = chai_engine.run("delete_entity(e2);");
+        CHECK(chai_report.ok);
+        CHECK_FALSE(bool(ecs.get_component<component::DebugName>(e2)));
+        CHECK_FALSE(ecs.exists(e2));
+        CHECK_FALSE(chai.eval<bool>("entity_exists(e2)"));
+        CHECK_FALSE(chai.eval<bool>("get_debug_name_component(e2).is_valid()"));
+    }
 }

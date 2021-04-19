@@ -4,6 +4,7 @@
 
 #include "cyan/generated/components/components.hpp"
 #include "cyan/generated/components/components_x_list.hpp"
+#include "cyan/generated/chai_bindings.hpp"
 
 using namespace std::string_literals;
 using namespace cyan;
@@ -57,23 +58,21 @@ void cyan::chai_add_ecs_library(cyan::ChaiEngine& chai_engine, cyan::ECS& ecs_ob
     // We can do a lot of component-specfic work in bulk using the pregenerated component X-Macro.
     #define X(ComponentT) \
     { \
-        chaiscript::utility::add_class<ComponentT>( \
-        *m, \
-                std::string(#ComponentT) + "Component", \
-                {chaiscript::constructor<ComponentT()>()}, \
-                {} \
-        ); \
-        \
         using AddComponentFnPtrT = ComponentEntry<ComponentT> (ECS::*)(Entity, const ComponentT&); \
         m->add( \
                 chaiscript::fun( \
                         static_cast<AddComponentFnPtrT>(&ECS::add_component<ComponentT>), &ecs_object), \
-                "add_debug_name_component"); \
+                "add_" + format_component_name(#ComponentT) + "_component"); \
         using GetComponentFnPtrT = ComponentEntry<ComponentT> (ECS::*)(Entity); \
         m->add( \
                 chaiscript::fun( \
                         static_cast<GetComponentFnPtrT>(&ECS::get_component<ComponentT>), &ecs_object), \
-                "get_debug_name_component"); \
+                "get_" + format_component_name(#ComponentT) + "_component"); \
+        using RemoveComponentFnPtrT = void (ECS::*)(Entity); \
+        m->add( \
+                chaiscript::fun( \
+                        static_cast<RemoveComponentFnPtrT>(&ECS::remove_component<ComponentT>), &ecs_object), \
+                "remove_" + format_component_name(#ComponentT) + "_component"); \
         /* Add entry class information */\
         chaiscript::utility::add_class<ComponentEntry<ComponentT>>(*m, \
             std::string(#ComponentT) + "ComponentEntry", \
@@ -83,11 +82,14 @@ void cyan::chai_add_ecs_library(cyan::ChaiEngine& chai_engine, cyan::ECS& ecs_ob
                     {chaiscript::fun(&ComponentEntry<ComponentT>::id), "id" }, \
                     {chaiscript::fun(&ComponentEntry<ComponentT>::value), "value" }, \
                     {chaiscript::fun(&ComponentEntry<ComponentT>::operator bool), "is_valid" }, \
+                    {chaiscript::fun(&ComponentEntry<ComponentT>::get), "get" }, \
                 } \
             ); \
     }
     X_COMPONENTS
     #undef X
+
+    generated::make_all_codegen_chai_bindings(m);
 
     chai.add(m);
 }

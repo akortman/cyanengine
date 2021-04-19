@@ -4,6 +4,7 @@
 #include "cyan/src/logging/assert.hpp"
 #include "cyan/src/engine/ecs/object_registry.hpp"
 #include "cyan/src/logging/logger.hpp"
+#include "cyan/src/logging/error.hpp"
 
 #include <queue>
 #include <unordered_map>
@@ -36,6 +37,12 @@ namespace cyan {
 
             /// Boolean conversion to check if the entry is valid.
             explicit operator bool() { return value != nullptr; }
+
+            /// get() allows easy unwrapping of the underlying component.
+            T& get() {
+                if (!value) throw cyan::Error("Attempt to unwrap invalid component");
+                return *value;
+            }
 
         private:
             /// Constructor to move an underlying ObjectRegistry entry into this entry.
