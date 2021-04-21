@@ -2,6 +2,7 @@
 
 #include "script/core_stdlib.hpp"
 #include "script/ecs_script.hpp"
+#include "script/generated_script.hpp"
 
 using namespace cyan;
 
@@ -37,6 +38,7 @@ Engine::Engine()
     // Initialize the chai/cyan standard library contents.
     chai_add_cyan_stdlib(chai_engine);
     chai_add_ecs_library(chai_engine);
+    chai_add_codegen_generated_library(chai_engine);
 
     LOG(INFO, "cyanengine initialized.");
 }

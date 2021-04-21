@@ -25,3 +25,16 @@ namespace cyan {
         {}
     };
 }
+
+/**
+ * Utility macro to create a new exception class inheriting from cyan::Error.
+ */
+#ifndef CYAN_MAKE_ERROR_TYPE
+#define CYAN_MAKE_ERROR_TYPE(ERR_NAME) \
+struct ERR_NAME: public cyan::Error { \
+    explicit ERR_NAME(const std::string& message) : cyan::Error("(" #ERR_NAME ")" + message) {} \
+    explicit ERR_NAME(const cyan::Error& err) : cyan::Error(std::string("(" #ERR_NAME ") ") + err.what()) {} \
+    template<typename... Params> \
+    explicit ERR_NAME(Params... args) : cyan::Error(fmt::format(args...)) {} \
+};
+#endif

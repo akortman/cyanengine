@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cyan/src/engine/ecs/ecs.hpp>
+#include "cyan/src/engine/resource/resource_manager.hpp"
 #include "script/chai_engine.hpp"
 #include "cyan/src/logging/logger.hpp"
 
@@ -55,20 +57,46 @@ namespace cyan {
      * Optional components:
      *  - A logger
      */
-    struct Engine {
+    struct Engine: public GarbageCollectedContainer {
         /**
          * Returns an EngineBuilder object which can be used to construct an Engine with specified components.
          * @return An EngineBuilder object
          */
         static EngineBuilder build_engine();
 
+        /**
+         * Get the underlying ResourceManager.
+         */
+        ResourceManager& resources() {
+            return resource_manager;
+        }
+
+        /**
+         * Get the underlying Entity-Component system.
+         */
+//        ECS& ecs() {
+//            return ecs; // TODO: convert this from a global to use engine.ecs.<...>
+//        }
+
         ~Engine();
+
+        /**
+         * Run a garbage collection cycle.
+         * @param generator A random_device to select random elements
+         * @param iters the scale of iterations (this will be fed to each data structure that can be garbage collected,
+         *              and that many elements will be checked in each array).
+         */
+        void gc(std::random_device& generator, int iters) override {
+            //ecs.gc(generator, iters)
+            resource_manager.gc(generator, iters);
+        }
 
     private:
         Engine();
 
         friend EngineBuilder;
 
+        ResourceManager resource_manager;
         ChaiEngine chai_engine;
     };
 }

@@ -1,0 +1,1 @@
+This directory contains a sample module for use with testing the ResourceManager struct.

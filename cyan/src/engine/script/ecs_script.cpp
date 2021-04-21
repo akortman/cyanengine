@@ -5,35 +5,12 @@
 #include "cyan/generated/components/components.hpp"
 #include "cyan/generated/components/components_x_list.hpp"
 #include "cyan/generated/chai_bindings.hpp"
+#include "cyan/src/util/string.hpp"
 
 using namespace std::string_literals;
 using namespace cyan;
 using namespace cyan::component;
 
-/**
- * Small utility to convert from PascalCase (or camelCase) to snake_case. Used to format component names for chai
- * functions.
- * @param name The name of the component (in PascalCase) to convert
- * @return The name in snake_case
- */
-std::string format_component_name(char* name) {
-    std::size_t pos = 0;
-    std::string result;
-    while (name[pos] != '\0') {
-        if (pos == 0 && std::isupper(name[pos])) {
-            result += std::tolower(name[pos]);
-        } else if (std::isupper(name[pos])) {
-            result += "_";
-            result += std::tolower(name[pos]);
-        } else {
-            result += name[pos];
-        }
-
-        pos += 1;
-    }
-
-    return result;
-}
 
 void cyan::chai_add_ecs_library(cyan::ChaiEngine& chai_engine, cyan::ECS& ecs_object)
 {
@@ -62,17 +39,17 @@ void cyan::chai_add_ecs_library(cyan::ChaiEngine& chai_engine, cyan::ECS& ecs_ob
         m->add( \
                 chaiscript::fun( \
                         static_cast<AddComponentFnPtrT>(&ECS::add_component<ComponentT>), &ecs_object), \
-                "add_" + format_component_name(#ComponentT) + "_component"); \
+                "add_" + string_util::to_snake_case(#ComponentT) + "_component"); \
         using GetComponentFnPtrT = ComponentEntry<ComponentT> (ECS::*)(Entity); \
         m->add( \
                 chaiscript::fun( \
                         static_cast<GetComponentFnPtrT>(&ECS::get_component<ComponentT>), &ecs_object), \
-                "get_" + format_component_name(#ComponentT) + "_component"); \
+                "get_" + string_util::to_snake_case(#ComponentT) + "_component"); \
         using RemoveComponentFnPtrT = void (ECS::*)(Entity); \
         m->add( \
                 chaiscript::fun( \
                         static_cast<RemoveComponentFnPtrT>(&ECS::remove_component<ComponentT>), &ecs_object), \
-                "remove_" + format_component_name(#ComponentT) + "_component"); \
+                "remove_" + string_util::to_snake_case(#ComponentT) + "_component"); \
         /* Add entry class information */\
         chaiscript::utility::add_class<ComponentEntry<ComponentT>>(*m, \
             std::string(#ComponentT) + "ComponentEntry", \
@@ -88,8 +65,6 @@ void cyan::chai_add_ecs_library(cyan::ChaiEngine& chai_engine, cyan::ECS& ecs_ob
     }
     X_COMPONENTS
     #undef X
-
-    generated::make_all_codegen_chai_bindings(m);
 
     chai.add(m);
 }

@@ -6,6 +6,7 @@
 
 namespace cyan {
     struct ChaiEngine {
+        /// Construct a ChaiEngine.
         ChaiEngine() : chai() {}
 
         /**
@@ -14,18 +15,17 @@ namespace cyan {
          * you can check the status of a RunReport.
          */
         struct RunReport {
+            /// `ok` is true unless the script execution encountered an error.
             bool ok;
+
+            /// If ok is false, `what` will contain the details of the error.
             std::string what;
 
-            /**
-             * Create a RunReport.
-             */
+            /// Create a RunReport.
             RunReport() : ok(true), what() {}
             RunReport(bool ok, std::string what) : ok(ok), what(std::move(what)) {}
 
-            /**
-             * Throw an informative cyan::Error if the RunReport contains an error.
-             */
+            /// Throw an informative cyan::Error if the RunReport contains an error, and otherwise do nothing.
             void ensure_ok() const;
         };
 

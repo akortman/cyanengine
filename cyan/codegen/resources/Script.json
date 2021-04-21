@@ -1,0 +1,11 @@
+{
+  "namespace": "cyan::resource",
+  "name": "Script",
+  "include": ["string"],
+  "data": [
+    { "name": "source", "type": "std::string" }
+  ],
+  "xlisted": [ ["X_RESOURCES", "./resources_x_list.hpp"] ],
+  "include_in": ["./resources.hpp"],
+  "generate": [ "chai_bindings" ]
+}
