@@ -36,6 +36,51 @@ namespace cyan::ecs_impl {
         };
 
         /**
+         * An iterator type for ObjectRegistry.
+         * When initalized with a valid pointer (which can be guaranteed with the use of `ObjectRegistry::begin()`),
+         * guarantees the only Entries it iterates over will be valid ones.
+         */
+        struct iterator {
+            using iterator_category = std::forward_iterator_tag;
+            using value_type = Entry;
+            using difference_type = std::ptrdiff_t;
+            using pointer = Entry*;
+            using reference = Entry&;
+
+            iterator(pointer ptr, ObjectRegistry* parent) : ptr(ptr), parent(parent) {}
+
+            reference operator*() const { return *ptr; }
+            pointer operator->() { return ptr; }
+            // prefix ++
+            iterator& operator++() {
+                do {
+                    ptr++;
+                } while (ptr != &parent->entries[0] + parent->entries.size()
+                         && !bool(*ptr));   // Ensure the iterator only has valid Entries
+                return *this;
+            }
+            // postfix ++
+            iterator operator++(int) { iterator tmp = *this; ++(*this); return tmp; }
+            friend bool operator== (const iterator& a, const iterator& b) { return a.ptr == b.ptr; };
+            friend bool operator!= (const iterator& a, const iterator& b) { return a.ptr != b.ptr; };
+
+        private:
+            pointer ptr;
+            ObjectRegistry* parent;
+        };
+
+        /// Iterator interface
+        iterator begin() {
+            iterator::pointer ptr = &entries[0];
+            while (!bool(*ptr)) ptr++;
+            return iterator(ptr, this);
+        }
+
+        iterator end() {
+            return iterator(&entries[0] + entries.size(), this);
+        }
+
+        /**
          * Add a copy of an object to the array and return a reference entry.
          * TODO: We probably want an rvalue-reference argument option.
          * @param object The object to make a copy of.

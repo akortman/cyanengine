@@ -42,3 +42,33 @@ TEST_CASE("SingleComponentRegistry<T>", "[engine][ecs]") {
     /// TODO: more is needed.
 }
 
+TEST_CASE("SingleComponentRegistry<T>: iterator", "[engine][ecs]") {
+    SingleComponentRegistry<int> registry;
+
+    for (int i = 0; i < 100; i += 1) {
+        auto e = Entity{static_cast<EcsIdT>(i)};
+        registry.add(e, i);
+    }
+
+    int count = 0;
+    for (auto it = registry.begin(); it != registry.end(); it++) {
+        CHECK(bool(*it));
+        CHECK(it->entity.id == count);
+        CHECK(*it->value == count);
+        count += 1;
+    }
+    CHECK(count == 100);
+
+    for (int i = 0; i < 50; i += 1) {
+        registry.remove(Entity{static_cast<EcsIdT>(i)});
+    }
+
+    count = 0;
+    for (auto & entry : registry) {
+        CHECK(bool(entry));
+        CHECK(entry.entity.id == count + 50);
+        CHECK(*entry.value == count + 50);
+        count += 1;
+    }
+    CHECK(count == 50);
+}

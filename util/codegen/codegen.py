@@ -40,12 +40,14 @@ def make_default_constructor(codegen_template):
     """
     Generate a default constructor from members.
     """
-    ctor_template = "{struct_name}() : {initializers} {{}}"
+    ctor_template = "{struct_name}() {initializers} {{}}"
     initializers = []
     for member in codegen_template["data"]:
         default_value = "" if "default" not in member else member["default"]
         initializers.append("{}({})".format(member["name"], default_value))
     initializers = ", ".join(initializers)
+    if len(codegen_template["data"]) > 0:
+        initializers = ": " + initializers
 
     return ctor_template.format(struct_name=codegen_template["name"], initializers=initializers)
 
@@ -93,10 +95,8 @@ def generate_code(codegen_file, output_file, chai_binder: ChaiBindingsGenerator)
         data_members = ["    {}".format(m) for m in data_members]
         data_members = "\n".join(data_members)
 
-        constructors = [
-            make_default_constructor(codegen_template),
-            make_member_constructor(codegen_template)
-        ]
+        constructors = [make_default_constructor(codegen_template)]
+        if len(data_members) > 0: constructors.append(make_member_constructor(codegen_template))
         constructors = "".join("    {}\n".format(c) for c in constructors)
     else:
         data_members = ""

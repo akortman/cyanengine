@@ -171,6 +171,22 @@ namespace cyan {
             return bool(get_component<T>(e));
         }
 
+
+        /**
+         * Variadic form of has_component to check for the existence of multiple components on a single entity.
+         * @tparam Components The components that will be checked
+         * @param e The ID of the entity to query for the existence of a components of the given type.
+         * @return Whether or not the first component has *all* of the listed components.
+         */
+        template <typename ...Components>
+        bool has_components(Entity e) {
+            if constexpr (!sizeof...(Components)) {
+                return true;
+            } else {
+                return has_components_impl<Components...>(e);
+            }
+        }
+
         /**
          * Get an entire component registry.
          * This function mainly exists for use in testing.
@@ -182,8 +198,140 @@ namespace cyan {
             return component_map.get_component_registry<T>();
         }
 
+        /**
+         * Iterator interface to iterate over all entities.
+         */
+        using iterator = EntityRegistry::iterator;
+
+        /// Get an iterator to the first valid entity.
+        iterator begin() { return entities.begin(); }
+
+        /// Get an iterator to the end of the array of entities.
+        iterator end() { return entities.end(); }
+
+        /**
+         * componentwise_iterator implements a templated iterator over all Entities with the specified component types
+         * (via the template arguments). Can be used to iterate over Entities with the specified components using
+         * the `iter_components<...>()` function (preferred) or the `componentwise_begin` and `componentwise_end`
+         * functions.
+         */
+        template <typename PrimaryComponent, typename ...Components>
+        struct componentwise_iterator {
+            using iterator_category = std::forward_iterator_tag;
+            using value_type = Entity;
+            using difference_type = std::ptrdiff_t;
+            using pointer = Entity*;
+            using reference = Entity&;
+            using primary_component_iterator_type = typename SingleComponentRegistry<PrimaryComponent>::iterator;
+
+            componentwise_iterator(primary_component_iterator_type iter, ECS* parent)
+                : e(iter->entity), iter(iter), parent(parent) {}
+
+            reference operator*() { return e; }
+            pointer operator->() { return &e; }
+
+            componentwise_iterator& operator++() {
+                do {
+                    iter++;
+                } while (iter != parent->get_component_registry<PrimaryComponent>()->end()
+                         && !parent->has_components<Components...>(iter->entity));
+                e = iter->entity;
+                return *this;
+            }
+
+            componentwise_iterator operator++(int) { componentwise_iterator tmp = *this; ++(*this); return tmp; }
+
+            friend bool operator== (const componentwise_iterator& a, const componentwise_iterator& b) {
+                return a.iter == b.iter;
+            };
+
+            friend bool operator!= (const componentwise_iterator& a, const componentwise_iterator& b) {
+                return a.iter != b.iter;
+            };
+
+        private:
+            Entity e;
+            primary_component_iterator_type iter;
+            ECS* parent;
+        };
+
+        /**
+         * begin() equivalent for iterating over a set of Entities determined by their components (a
+         * componentwise_iterator). Use of componentwise_begin() and componentwise_end() is best illustrated by a
+         * for-loop:
+         *      ```
+         *      for (auto it = ecs.componentwise_begin<component::DebugName, component::Render>();
+         *            it != ecs.componentwise_end<component::DebugName, component::Render>();
+         *            it++) {
+         *            // do something with it, which acts as a pointer to an Entity
+         *            // it is guaranteed that the Entity *it has DebugName and Render components
+         *      }
+         *      ```
+         */
+        template <typename PrimaryComponent, typename ...Components>
+        componentwise_iterator<PrimaryComponent, Components...> componentwise_begin() {
+            auto iter = component_map.get_component_registry<PrimaryComponent>()->begin();
+            while (!has_components<Components...>(iter->entity)) iter++;
+            return componentwise_iterator<PrimaryComponent, Components...>(iter, this);
+        }
+
+        /**
+         * end() equivalent for iterating over a set of Entities determined by their components (a
+         * componentwise_iterator).
+         */
+        template <typename PrimaryComponent, typename ...Components>
+        componentwise_iterator<PrimaryComponent, Components...> componentwise_end() {
+            auto iter = component_map.get_component_registry<PrimaryComponent>()->end();
+            return componentwise_iterator<PrimaryComponent, Components...>(iter, this);
+        }
+
+        /**
+         * ComponentwiseIterHelper exists to enable range-based for loops over componentwise iterators.
+         * E.g.:    `for (auto& entity: ecs.iter_components<int, std::string>()) {...}`.
+         * Must be instantiated with the iter_components<...>() function.
+         * @tparam Components The components to iterate over (the iterator will map over each Entity that has
+         *                    *all* the specified components).
+         */
+        template <typename ...Components>
+        struct ComponentwiseIterHelper {
+            explicit ComponentwiseIterHelper(ECS* ecs) : ecs(ecs) {}
+
+            using iterator = componentwise_iterator<Components...>;
+
+            componentwise_iterator<Components...> begin() {
+                return ecs->componentwise_begin<Components...>();
+            }
+            componentwise_iterator<Components...> end() {
+                return ecs->componentwise_end<Components...>();
+            }
+        private:
+            ECS* ecs;
+        };
+
+        /**
+         * Used to create a ComponentIterHelper which can be used to iterate over using C++'s range-based for loop
+         * construct.
+         * E.g.:    `for (auto& entity: ecs.iter_components<int, std::string>()) {...}`.
+         * @tparam Components The components to iterate over (the iterator will map over each Entity that has
+         *                    *all* the specified components).
+         */
+        template <typename ...Components>
+        ComponentwiseIterHelper<Components...> iter_components() {
+            return ComponentwiseIterHelper<Components...>(this);
+        }
+
     private:
         EntityRegistry entities;
         ecs_impl::ComponentMap component_map;
+
+        /// Implementation function for has_components<T...>
+        template <typename FirstComponent, typename ...Components>
+        bool has_components_impl(Entity e) {
+            if constexpr (!sizeof...(Components)) {
+                return has_component<FirstComponent>(e);
+            } else {
+                return has_component<FirstComponent>(e) && has_components<Components...>(e);
+            }
+        }
     };
 }

@@ -1,0 +1,11 @@
+{
+  "namespace": "cyan::component",
+  "name": "Transform",
+  "data": [
+    { "name": "x", "type": "int" },
+    { "name": "y", "type": "int" }
+  ],
+  "xlisted": [ ["X_COMPONENTS", "./components_x_list.hpp"] ],
+  "include_in": ["./components.hpp"],
+  "generate": [ "chai_bindings" ]
+}

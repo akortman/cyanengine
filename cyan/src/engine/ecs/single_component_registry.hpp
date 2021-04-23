@@ -185,6 +185,52 @@ namespace cyan {
             return Entry{Entity{ECS_NULL_INDEX}, Id{ECS_NULL_INDEX}, nullptr};
         }
 
+        /**
+         * iterator for iteration over each Component in the registry.
+         * Works with range-based for loops.
+         */
+        struct iterator {
+            using iterator_category = std::forward_iterator_tag;
+            using value_type = Entry;
+            using difference_type = std::ptrdiff_t;
+            using pointer = Entry*;
+            using reference = Entry&;
+            using underlying_iter = typename ecs_impl::ObjectRegistry<T>::iterator;
+
+            iterator(underlying_iter iter, SingleComponentRegistry<T>* parent) : iter(iter), parent(parent) {}
+
+            // operator* and operator-> require updating to the internal Entry, as SingleComponentRegistry basically
+            // fakes having a real registry on-demand rather than store an entire array of registries (the rest of the
+            // necessary info is in the underlying ObjectRegistry).
+            reference operator*() { entry = parent->get(Id{iter->id}); return entry; }
+            pointer operator->() { entry = parent->get(Id{iter->id}); return &entry; }
+            // prefix ++
+            iterator& operator++() { iter++; return *this; }
+            // postfix ++
+            iterator operator++(int) { iterator tmp = *this; ++(*this); return tmp; }
+            friend bool operator== (const iterator& a, const iterator& b) { return a.iter == b.iter; };
+            friend bool operator!= (const iterator& a, const iterator& b) { return a.iter != b.iter; };
+
+        private:
+            underlying_iter iter;
+            Entry entry;
+            SingleComponentRegistry<T>* parent;
+        };
+
+        /**
+         * Get an iterator to the start of the component registry.
+         */
+        iterator begin() {
+            return iterator(components.begin(), this);
+        }
+
+        /**
+         * Get an iterator to the end of the component registry.
+         */
+        iterator end() {
+            return iterator(components.end(), this);
+        }
+
     private:
         std::unordered_map<EcsIdT, EcsIdT> entity_component_map;
         std::unordered_map<EcsIdT, EcsIdT> component_entity_map;

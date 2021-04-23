@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include <cyan/src/engine/ecs/ecs.hpp>
+#include "cyan/src/engine/ecs/ecs.hpp"
+#include "cyan/src/io/draw2d/renderer_interface.hpp"
 #include "cyan/src/engine/resource/resource_manager.hpp"
-#include "script/chai_engine.hpp"
+#include "cyan/src/engine/script/chai_engine.hpp"
 #include "cyan/src/logging/logger.hpp"
 
 namespace cyan {
@@ -44,9 +45,17 @@ namespace cyan {
          */
         EngineBuilder& with_logger(cyan::LogVerbosity log_verbosity, std::ostream* output);
 
+        /**
+         * Attach an OpenGL 2D renderer to the Engine.
+         * @return A reference to the EngineBuilder itself to allow fluent chaining of function calls.
+         */
+        EngineBuilder& with_renderer_2d_opengl();
+
     private:
         EngineBuilder() = default;
         friend Engine;
+
+        std::unique_ptr<draw2d::RendererInterface> renderer_2d = nullptr;
     };
 
     /** Engine
@@ -65,6 +74,11 @@ namespace cyan {
         static EngineBuilder build_engine();
 
         /**
+         * Run the engine main loop until an exit signal is received.
+         */
+        void run();
+
+        /**
          * Get the underlying ResourceManager.
          */
         ResourceManager& resources() {
@@ -78,6 +92,10 @@ namespace cyan {
 //            return ecs; // TODO: convert this from a global to use engine.ecs.<...>
 //        }
 
+        /// Engine cannot be default-constructed. The only way to construct an Engine is via an EngineBuilder.
+        Engine() = delete;
+
+        /// Deconstructor.
         ~Engine();
 
         /**
@@ -92,11 +110,12 @@ namespace cyan {
         }
 
     private:
-        Engine();
-
         friend EngineBuilder;
+
+        explicit Engine(std::unique_ptr<draw2d::RendererInterface> renderer_2d);
 
         ResourceManager resource_manager;
         ChaiEngine chai_engine;
+        std::unique_ptr<draw2d::RendererInterface> renderer_2d;
     };
 }

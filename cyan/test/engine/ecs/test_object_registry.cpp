@@ -210,3 +210,29 @@ TEST_CASE("ObjectRegistry: fuzzy mass use testing for consistency", "[engine][ec
         CHECK(entry.id == *entry);
     }
 }
+
+TEST_CASE("ObjectRegistry: iterator", "[engine][ecs]") {
+    ObjectRegistry<EcsIdT> registry;
+
+    for (int i = 0; i < 100; i += 1) {
+        registry.add(i);
+    }
+
+    int count = 0;
+    for (auto it = registry.begin(); it != registry.end(); it++) {
+        CHECK(bool(*it));
+        count += 1;
+    }
+    CHECK(count == 100);
+
+    for (int i = 0; i < 50; i += 1) {
+        registry.remove(i);
+    }
+
+    count = 0;
+    for (auto & it : registry) {
+        CHECK(bool(it));
+        count += 1;
+    }
+    CHECK(count == 50);
+}

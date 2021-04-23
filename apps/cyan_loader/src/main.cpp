@@ -5,12 +5,15 @@
  * The actual game content should be ran via the game scripts.
  */
 
-#include "cyan/src/engine/engine.hpp"
+#include "cyan/src/engine.hpp"
 
 int main() {
     auto engine = cyan::Engine::build_engine()
             .with_logger(cyan::LogVerbosity::DEBUG, &std::cerr)
+            .with_renderer_2d_opengl()
             .create();
+
+    engine.run();
 
     return 0;
 }
