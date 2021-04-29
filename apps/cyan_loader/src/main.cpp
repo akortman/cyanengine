@@ -8,12 +8,17 @@
 #include "cyan/src/engine.hpp"
 
 int main() {
-    auto engine = cyan::Engine::build_engine()
-            .with_logger(cyan::LogVerbosity::DEBUG, &std::cerr)
-            .with_renderer_2d_opengl()
-            .create();
+    try {
+        auto engine = cyan::Engine::build_engine()
+                .with_logger(cyan::LogVerbosity::DEBUG, &std::cerr)
+                .with_renderer_2d_opengl()
+                .create();
 
-    engine.run();
+        engine.run();
 
-    return 0;
+        return 0;
+    } catch (cyan::Error& e) {
+        LOG(FATAL, "Unhandled cyan::Error: {}", e.what());
+        std::exit(EXIT_FAILURE);
+    }
 }

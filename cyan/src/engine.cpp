@@ -4,7 +4,7 @@
 #include "cyan/src/engine/script/core_stdlib.hpp"
 #include "cyan/src/engine/script/ecs_script.hpp"
 #include "cyan/src/engine/script/generated_script.hpp"
-#include "cyan/src/io/draw2d/backends/opengl/renderer.hpp"
+#include "cyan/src/io/backends/opengl/renderer.hpp"
 
 using namespace cyan;
 
@@ -26,7 +26,7 @@ EngineBuilder& EngineBuilder::with_renderer_2d_opengl()
 {
     if (renderer_2d) throw cyan::Error("Attempt to create Engine with OpenGL 2D renderer, but a renderer has already "
                                        "been assigned.");
-    renderer_2d = std::make_unique<draw2d::backends::opengl::Renderer>();
+    renderer_2d = std::make_unique<io::backends::opengl::Renderer>();
     return *this;
 }
 
@@ -37,8 +37,8 @@ EngineBuilder Engine::build_engine()
 }
 
 
-Engine::Engine(std::unique_ptr<draw2d::RendererInterface> renderer_2d)
-        : renderer_2d(std::move(renderer_2d))
+Engine::Engine(std::unique_ptr<io::RendererInterface> renderer_2d)
+        : renderer(std::move(renderer_2d))
 {
     // Initialize the chai/cyan standard library contents.
     chai_add_cyan_stdlib(chai_engine);
@@ -58,7 +58,7 @@ Engine::~Engine()
 void Engine::run()
 {
     while (true) {
-        renderer_2d->draw(ecs::global_ecs);
+        renderer->draw(ecs::global_ecs);
     }
 }
 

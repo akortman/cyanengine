@@ -6,7 +6,7 @@
 #pragma once
 
 #include "cyan/src/engine/ecs/ecs.hpp"
-#include "cyan/src/io/draw2d/renderer_interface.hpp"
+#include "cyan/src/io/renderer_interface.hpp"
 #include "cyan/src/engine/resource/resource_manager.hpp"
 #include "cyan/src/engine/script/chai_engine.hpp"
 #include "cyan/src/logging/logger.hpp"
@@ -55,7 +55,7 @@ namespace cyan {
         EngineBuilder() = default;
         friend Engine;
 
-        std::unique_ptr<draw2d::RendererInterface> renderer_2d = nullptr;
+        std::unique_ptr<io::RendererInterface> renderer_2d = nullptr;
     };
 
     /** Engine
@@ -112,10 +112,10 @@ namespace cyan {
     private:
         friend EngineBuilder;
 
-        explicit Engine(std::unique_ptr<draw2d::RendererInterface> renderer_2d);
+        explicit Engine(std::unique_ptr<io::RendererInterface> renderer_2d);
 
         ResourceManager resource_manager;
         ChaiEngine chai_engine;
-        std::unique_ptr<draw2d::RendererInterface> renderer_2d;
+        std::unique_ptr<io::RendererInterface> renderer;
     };
 }
