@@ -31,6 +31,10 @@ include_directories(library/glfw/include)
 add_subdirectory(library/glew/build/cmake)
 include_directories(library/glew/include)
 
+# glm
+add_subdirectory(library/glm)
+include_directories(library/glm)
+
 # Find required packages.
 find_package(fmt REQUIRED)
 find_package(OpenGL REQUIRED)
