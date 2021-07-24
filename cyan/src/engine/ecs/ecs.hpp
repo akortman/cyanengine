@@ -83,7 +83,7 @@ namespace cyan {
         template <typename T, typename ...Args>
         ComponentEntry<T> emplace_component(Entity e, Args... args) {
             auto component_registry = component_map.get_component_registry<T>();
-            return component_registry->emplace(e, std::forward(args...));
+            return component_registry->emplace(e, std::forward<Args>(args)...);
         }
 
         /**

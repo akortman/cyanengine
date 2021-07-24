@@ -1,7 +1,6 @@
 #pragma once
 
 #include "cyan/src/engine/ecs/ecs.hpp"
-#include "cyan/src/engine/ecs/ecs_global.hpp"
 #include "chai_engine.hpp"
 
 namespace cyan {
@@ -12,5 +11,5 @@ namespace cyan {
      */
     extern void chai_add_ecs_library(
             cyan::ChaiEngine& chai_engine,
-            ECS& ecs_object = cyan::ecs::global_ecs);
+            ECS& ecs_object);
 }

@@ -79,9 +79,9 @@ Renderer::Renderer() {
 }
 
 
-void Renderer::draw(cyan::ECS& ecs)
+void Renderer::draw(Scene& scene)
 {
-//    for (auto& entity: ecs.iter_components<component::Render, component::Transform>()) {
+//    for (auto& entity: scene.ecs.iter_components<component::Render, component::Transform>()) {
 //        // TODO: draw the entity.
 //    }
 
@@ -94,6 +94,12 @@ void Renderer::draw(cyan::ECS& ecs)
     glBindVertexArray(0);
 
     glfwSwapBuffers(window);
+}
+
+
+const char* Renderer::name()
+{
+    return "OpenGL";
 }
 
 

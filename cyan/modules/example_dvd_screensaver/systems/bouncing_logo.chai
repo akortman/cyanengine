@@ -1,0 +1,9 @@
+##cyan::system
+
+def init(data) {
+    data["new_entity();
+}
+
+def update(data, scene, elapsed_ticks) {
+
+}

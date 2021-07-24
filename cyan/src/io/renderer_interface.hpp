@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cyan/src/engine/ecs/ecs.hpp"
+#include "cyan/src/engine/scene.hpp"
 
 namespace cyan::io {
     /**
@@ -8,6 +8,8 @@ namespace cyan::io {
      */
     struct RendererInterface {
         /// Draw the contents of the ECS onto the screen (will render according to what Entities have Render components)
-        virtual void draw(ECS& ecs) = 0;
+        virtual void draw(Scene& scene) = 0;
+        /// Get the name of the Renderer for debugging purposes.
+        virtual const char* name() = 0;
     };
 }

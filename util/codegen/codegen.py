@@ -12,12 +12,11 @@ from chaigen import ChaiBindingsGenerator
 template_file_extension = ".json"
 output_file_extension = ".hpp"
 
-struct_template = """
-struct {struct_name} {{
+struct_template = """struct {struct_name} {{
+{enclosed_structs}
 {constructors}
 {data_members}
-}};
-"""
+}};"""
 
 
 def make_namespaced(struct_body, namespace):
@@ -81,6 +80,48 @@ def make_member_constructor(codegen_template, argnames=True):
     return ctor_code
 
 
+def make_struct(codegen_template, substruct=None, enclose_structs=None):
+    if substruct is None:
+        struct_name = codegen_template["name"]
+        struct_data = codegen_template
+    else:
+        if "structs" not in codegen_template or substruct not in codegen_template["structs"]:
+            raise RuntimeError("make_struct called on substruct named \"{}\", which cannot be found", substruct)
+        struct_name = substruct
+        struct_data = codegen_template["structs"][struct_name]
+
+    # Get substruct info
+    if "structs" in codegen_template:
+        substruct_bodies = [
+            make_struct(substruct_data) for name, substruct_data in codegen_template["structs"].items()
+        ]
+        substruct_bodies = "".join([ss.replace("\n", "\n    ") for ss in substruct_bodies])
+    else:
+        substruct_bodies = ""
+
+    if "data" in struct_data:
+        data_members = [make_member(m) for m in struct_data["data"]]
+        data_members = ["    {}".format(m) for m in data_members]
+        data_members = "\n".join(data_members)
+
+        constructors = [make_default_constructor(struct_data)]
+        if len(data_members) > 0:
+            constructors.append(make_member_constructor(struct_data))
+        constructors = "".join("    {}\n".format(c) for c in constructors)
+    else:
+        data_members = ""
+        constructors = ""
+
+    struct_body = struct_template.format(
+        enclosed_structs=substruct_bodies,
+        struct_name=struct_name,
+        constructors=constructors,
+        data_members=data_members
+    )
+
+    return struct_body
+
+
 def generate_code(codegen_file, output_file, chai_binder: ChaiBindingsGenerator):
     """
     Given a single codegen file template, generate and return the corresponding C++ code.
@@ -88,32 +129,17 @@ def generate_code(codegen_file, output_file, chai_binder: ChaiBindingsGenerator)
     with open(codegen_file, 'r') as f:
         codegen_template = json.load(f)
 
-    struct_name = codegen_template["name"]
     namespace = "" if "namespace" not in codegen_template else codegen_template["namespace"]
-    if "data" in codegen_template:
-        data_members = [make_member(m) for m in codegen_template["data"]]
-        data_members = ["    {}".format(m) for m in data_members]
-        data_members = "\n".join(data_members)
 
-        constructors = [make_default_constructor(codegen_template)]
-        if len(data_members) > 0: constructors.append(make_member_constructor(codegen_template))
-        constructors = "".join("    {}\n".format(c) for c in constructors)
-    else:
-        data_members = ""
-        constructors = ""
+    struct_body = make_struct(codegen_template)
 
     # Add chai bindings if the option is set.
+    # TODO: we want chai bindings for the substructs too, so this needs to be moved into make_struct
     try:
         if "chai_bindings" in codegen_template["generate"]:
             chai_binder.add_chai_bindings(output_file, codegen_template)
     except KeyError:
         pass
-
-    struct_body = struct_template.format(
-        struct_name=struct_name,
-        constructors=constructors,
-        data_members=data_members
-    )
 
     if "include" in codegen_template:
         includes = "".join("#include <{}>\n".format(inc) for inc in codegen_template["include"])
@@ -124,6 +150,7 @@ def generate_code(codegen_file, output_file, chai_binder: ChaiBindingsGenerator)
             + includes
             + make_namespaced(struct_body, namespace))
 
+    struct_name = codegen_template["name"]
     return {"struct_name": struct_name,
             "namespaced_struct_name": struct_name if namespace == "" else namespace + "::" + struct_name,
             "code": code,

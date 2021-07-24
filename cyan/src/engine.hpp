@@ -5,14 +5,17 @@
 
 #pragma once
 
+#include <optional>
+
 #include "cyan/src/engine/ecs/ecs.hpp"
 #include "cyan/src/io/renderer_interface.hpp"
 #include "cyan/src/engine/resource/resource_manager.hpp"
 #include "cyan/src/engine/script/chai_engine.hpp"
 #include "cyan/src/logging/logger.hpp"
+#include "cyan/src/engine/scene.hpp"
 
 namespace cyan {
-    // Forward-declare engine so we can specify it as a friend to an
+    // Forward-declare engine so we can specify it as a friend to EngineBuilder
     struct Engine;
 
     /** EngineBuilder
@@ -34,6 +37,13 @@ namespace cyan {
         Engine create();
 
         /**
+         * Create the engine with a scene in-place.
+         * @param scene_name The name of the scene
+         * @return A reference to the EngineBuilder itself to allow fluent chaining of function calls.
+         */
+        EngineBuilder& with_scene(const std::string& scene_name);
+
+        /**
          * Add logging information to the engine's logger.
          * @param log_verbosity The highest level of verbosity to output. The verbosities are DEBUG, INFO, WARN,
          *                      CRITICAL, and FATAL. DEBUG will show everything, while choosing CRITICAL will only show
@@ -46,16 +56,24 @@ namespace cyan {
         EngineBuilder& with_logger(cyan::LogVerbosity log_verbosity, std::ostream* output);
 
         /**
-         * Attach an OpenGL 2D renderer to the Engine.
+         * Attach a renderer to the Engine.
          * @return A reference to the EngineBuilder itself to allow fluent chaining of function calls.
          */
-        EngineBuilder& with_renderer_2d_opengl();
+        EngineBuilder& with_renderer(const std::string& renderer_name);
+
+        /**
+         * Choose whether to initialize the script standard library.
+         * @param b whether to initialize the chai stdlib
+         */
+        EngineBuilder& with_chai_stdlib(bool b);
 
     private:
         EngineBuilder() = default;
         friend Engine;
 
-        std::unique_ptr<io::RendererInterface> renderer_2d = nullptr;
+        std::string renderer = "headless";
+        bool init_chai_stdlib = true;
+        std::optional<std::string> init_scene_name;
     };
 
     /** Engine
@@ -76,21 +94,20 @@ namespace cyan {
         /**
          * Run the engine main loop until an exit signal is received.
          */
-        void run();
+        [[noreturn]] void run();
 
         /**
          * Get the underlying ResourceManager.
          */
-        ResourceManager& resources() {
-            return resource_manager;
-        }
+        ResourceManager& resources();
 
         /**
-         * Get the underlying Entity-Component system.
+         * Create a new scene. Throws an error if there is a scene currently in use.
+         * @return The newly created Scene object
          */
-//        ECS& ecs() {
-//            return ecs; // TODO: convert this from a global to use engine.ecs.<...>
-//        }
+        Scene& new_scene(const std::string& scene_name);
+
+        Scene& active_scene();
 
         /// Engine cannot be default-constructed. The only way to construct an Engine is via an EngineBuilder.
         Engine() = delete;
@@ -112,10 +129,17 @@ namespace cyan {
     private:
         friend EngineBuilder;
 
-        explicit Engine(std::unique_ptr<io::RendererInterface> renderer_2d);
+        // TODO: I want to inject the actual Renderer here to allow Renderer settings to be easily passed into
+        //       EngineBuilder's with_renderer() function
+        Engine(const std::string& renderer_name,
+                std::optional<std::string> initial_scene_name,
+                bool with_scripts);
 
+        void init_script_engine();
+
+        std::optional<Scene> current_scene;
         ResourceManager resource_manager;
-        ChaiEngine chai_engine;
+        std::optional<ChaiEngine> chai_engine;
         std::unique_ptr<io::RendererInterface> renderer;
     };
 }

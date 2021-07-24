@@ -7,15 +7,20 @@
 
 #include "cyan/src/engine.hpp"
 
+#include "cyan/generated/components/components.hpp"
+using namespace cyan;
+
 int main() {
     try {
         auto engine = cyan::Engine::build_engine()
                 .with_logger(cyan::LogVerbosity::DEBUG, &std::cerr)
-                .with_renderer_2d_opengl()
+                .with_scene("Main Scene")
+                .with_renderer("SDL2")
                 .create();
-
+        auto e = engine.active_scene().ecs().new_entity();
+        engine.active_scene().ecs().emplace_component<component::Transform>(e, Vec3(100, 100, 0));
+        engine.active_scene().ecs().emplace_component<component::Render>(e);
         engine.run();
-
         return 0;
     } catch (cyan::Error& e) {
         LOG(FATAL, "Unhandled cyan::Error: {}", e.what());

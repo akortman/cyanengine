@@ -1,7 +1,6 @@
 #pragma once
 
 #include "cyan/src/engine/ecs/ecs.hpp"
-#include "cyan/src/engine/ecs/ecs_global.hpp"
 #include "chai_engine.hpp"
 
 namespace cyan {

@@ -64,7 +64,7 @@ namespace cyan {
             if (int(verbosity) < int(verbosity_threshold)) return;
             for (int i = 0; i < num_outputs; i += 1) {
                 this->print_time(outputs[i]);
-                (*outputs[i]) << this->verbosity_to_str(verbosity) << fmt::format(fmt, args...) << '\n';
+                (*outputs[i]) << this->verbosity_to_str(verbosity) << ": " << fmt::format(fmt, args...) << '\n';
             }
         }
 
@@ -74,14 +74,17 @@ namespace cyan {
             log(LogVerbosity::INFO, "(Script) {}", s);
         }
 
+        /// Get the current verbosity visibility threshold.
+        LogVerbosity get_verbosity_threshold();
+
+        /// Convert a LogVerbosity enum value to string for display.
+        static const char* verbosity_to_str(LogVerbosity verbosity);
+
     private:
         LogVerbosity verbosity_threshold;
         static const std::uint8_t max_outputs = 4;
         std::uint8_t num_outputs;
         std::array<std::ostream*, max_outputs> outputs;
-
-        /// Convert a LogVerbosity enum value to string for display.
-        static const char* verbosity_to_str(LogVerbosity verbosity);
 
         /// Print the current timestamp to an output stream.
         static void print_time(std::ostream* out);

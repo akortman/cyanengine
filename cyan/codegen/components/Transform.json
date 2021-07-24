@@ -1,9 +1,9 @@
 {
   "namespace": "cyan::component",
   "name": "Transform",
-  "include": "glm/glm.hpp",
+  "include": ["cyan/src/math/vec.hpp"],
   "data": [
-    { "name": "translate", "type": "glm::vec3" }
+    { "name": "translate", "type": "cyan::Vec3" }
   ],
   "xlisted": [ ["X_COMPONENTS", "./components_x_list.hpp"] ],
   "include_in": ["./components.hpp"],

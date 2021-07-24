@@ -11,7 +11,9 @@ namespace cyan::io::backends::opengl {
         Renderer();
 
         /// Draw the contents of the ECS onto the screen (will render according to what Entities have Render components)
-        void draw(ECS& ecs) override;
+        void draw(Scene& scene) override;
+
+        const char* name() override;
 
     private:
         /**

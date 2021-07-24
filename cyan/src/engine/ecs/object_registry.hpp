@@ -24,8 +24,9 @@ namespace cyan::ecs_impl {
          * These act as a pointer to the value, as well as holding whether the value is active.
          */
         struct Entry {
+            Entry(EcsIndexT id, T* value): id(id), value(value) {}
             EcsIndexT id = ECS_NULL_INDEX;
-            T* value;
+            T* value = nullptr;
 
             /// operator* overloads to allow this object to be used as if it's a pointer.
             T& operator*() { return *value; }
@@ -102,7 +103,7 @@ namespace cyan::ecs_impl {
                 entries[target_index].value = &object_array[target_index];
                 object_array[target_index] = object;
             } else {
-                // Otherwise, we allocate a new slot for the component.
+                // Otherwise, we allocate a new slot for the object.
                 target_index = object_array.size();
                 object_array.push_back(object);
                 entries.push_back({target_index, &object_array[target_index]});
@@ -129,15 +130,15 @@ namespace cyan::ecs_impl {
                 empty_indices.pop();
                 CYAN_ASSERT(!entries[target_index]);
                 entries[target_index].id = make_ecs_id(
-                        get_generation(component_entries[target_index].id) + 1,
+                        get_generation(entries[target_index].id) + 1,
                         target_index);
                 entries[target_index].value = &object_array[target_index];
                 object_array[target_index] = T(args...);
             } else {
-                // Otherwise, we allocate a new slot for the component.
-                target_index = components.size();
-                object_array.emplace_back(std::forward(args...));
-                entries.emplace_back(e, target_index, &object_array[target_index]);
+                // Otherwise, we allocate a new slot for the object.
+                target_index = entries.size();
+                object_array.emplace_back(std::forward<Args>(args)...);
+                entries.emplace_back(target_index, &object_array[target_index]);
             }
 
             return entries[target_index];

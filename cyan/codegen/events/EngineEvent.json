@@ -1,0 +1,16 @@
+{
+  "namespace": "cyan::event",
+  "name": "EngineEvent",
+  "include": ["variant"],
+  "data": [
+    { "name": "variant", "type": "std::variant<Shutdown>", "generate": ["functional_cast"] }
+  ],
+  "xlisted": [ ["X_EVENTS", "./events_x_list.hpp"] ],
+  "include_in": ["./events.hpp"],
+  "structs": {
+    "Shutdown": {
+      "name": "Shutdown",
+      "data": []
+    }
+  }
+}

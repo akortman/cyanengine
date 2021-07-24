@@ -34,6 +34,8 @@ namespace cyan {
             /// operator* overloads to allow this object to be used as if it's a pointer.
             T& operator*() { return *value; }
             const T& operator*() const { return *value; }
+            T* operator->() { return value; }
+            const T* operator->() const { return value; }
 
             /// Boolean conversion to check if the entry is valid.
             explicit operator bool() { return value != nullptr; }
@@ -114,7 +116,7 @@ namespace cyan {
                 return get(Id{entity_component_iter->second});
             }
 
-            auto component_entry = components.emplace(std::forward(args...));
+            auto component_entry = components.emplace(std::forward<Args>(args)...);
 
             entity_component_map.insert({e.id, component_entry.id});
             component_entity_map.insert({component_entry.id, e.id});

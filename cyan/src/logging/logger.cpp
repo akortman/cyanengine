@@ -16,15 +16,15 @@ const char* Logger::verbosity_to_str(LogVerbosity verbosity)
 {
     switch (verbosity) {
         case LogVerbosity::DEBUG:
-            return "DEBUG: ";
+            return "DEBUG";
         case LogVerbosity::INFO:
-            return "";
+            return "INFO";
         case LogVerbosity::WARN:
-            return "WARNING: ";
+            return "WARNING";
         case LogVerbosity::CRITICAL:
-            return "CRITICAL: ";
+            return "CRITICAL";
         case LogVerbosity::FATAL:
-            return "FATAL ERROR: ";
+            return "FATAL";
         default:
             return "";
     }
@@ -56,6 +56,12 @@ void Logger::add_output_stream(std::ostream* output)
 {
     outputs[num_outputs] = output;
     num_outputs += 1;
+}
+
+
+LogVerbosity Logger::get_verbosity_threshold()
+{
+    return verbosity_threshold;
 }
 
 
